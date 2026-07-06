@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>근성장 예측 리포트</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F5F6F8;
+    --panel:#FFFFFF;
+    --ink:#10141C;
+    --navy:#1D3557;
+    --steel:#5B6472;
+    --line:#DBE0E6;
+    --vital:#2F9E44;
+    --vital-soft:#EAF7ED;
+    --rust:#C1440E;
+    --mono:'IBM Plex Mono', monospace;
+    --sans:'IBM Plex Sans KR', 'IBM Plex Sans', sans-serif;
+  }
+
+  *{box-sizing:border-box;}
+  html{-webkit-font-smoothing:antialiased;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.55;
+    padding:32px 16px 80px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important; transition:none !important;}
+  }
+
+  .wrap{
+    max-width:640px;
+    margin:0 auto;
+  }
+
+  /* ---------- header ---------- */
+  header{margin-bottom:36px;}
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:11.5px;
+    letter-spacing:.14em;
+    color:var(--navy);
+    text-transform:uppercase;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:14px;
+  }
+  .eyebrow::before{
+    content:"";
+    width:7px;height:7px;
+    background:var(--vital);
+    border-radius:50%;
+    flex:none;
+    box-shadow:0 0 0 3px var(--vital-soft);
+  }
+  h1{
+    font-size:clamp(28px,6vw,38px);
+    font-weight:700;
+    letter-spacing:-0.02em;
+    margin:0 0 10px;
+    color:var(--ink);
+  }
+  header p{
+    color:var(--steel);
+    font-size:15px;
+    max-width:46ch;
+    margin:0;
+  }
+
+  /* ---------- panels ---------- */
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:22px;
+    margin-bottom:20px;
+  }
+  .panel-head{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+    margin-bottom:16px;
+  }
+  .panel-num{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--navy);
+    background:#EEF2F7;
+    border-radius:5px;
+    padding:2px 7px;
+    font-weight:600;
+  }
+  .panel-title{
+    font-size:16px;
+    font-weight:600;
+  }
+  .panel-help{
+    font-size:13px;
+    color:var(--steel);
+    margin:-8px 0 16px;
+  }
+
+  /* ---------- data table ---------- */
+  .rows-head, .row{
+    display:grid;
+    grid-template-columns:28px 1fr 1fr 36px;
+    gap:10px;
+    align-items:center;
+  }
+  .rows-head{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--steel);
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    padding:0 2px 8px;
+    border-bottom:1px solid var(--line);
+    margin-bottom:10px;
+  }
+  .row{margin-bottom:9px;}
+  .row-index{
+    font-family:var(--mono);
+    font-size:13px;
+    color:var(--steel);
+    text-align:center;
+  }
+  .field{position:relative;}
+  .field input{
+    width:100%;
+    font-family:var(--mono);
+    font-size:14.5px;
+    padding:9px 34px 9px 10px;
+    border:1px solid var(--line);
+    border-radius:6px;
+    background:var(--paper);
+    color:var(--ink);
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .field input:focus{
+    outline:none;
+    border-color:var(--navy);
+    background:#fff;
+  }
+  .field input.invalid{border-color:var(--rust);}
+  .field .unit{
+    position:absolute;
+    right:10px; top:50%;
+    transform:translateY(-50%);
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--steel);
+    pointer-events:none;
+  }
+  .remove-btn{
+    width:30px;height:30px;
+    border-radius:6px;
+    border:1px solid var(--line);
+    background:#fff;
+    color:var(--steel);
+    font-size:15px;
+    cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    transition:border-color .15s ease, color .15s ease;
+  }
+  .remove-btn:hover:not(:disabled){border-color:var(--rust); color:var(--rust);}
+  .remove-btn:disabled{opacity:.35; cursor:not-allowed;}
+
+  .add-btn{
+    margin-top:6px;
+    width:100%;
+    padding:11px;
+    border-radius:7px;
+    border:1px dashed var(--line);
+    background:transparent;
+    color:var(--navy);
+    font-family:var(--sans);
+    font-weight:600;
+    font-size:14px;
+    cursor:pointer;
+    transition:background .15s ease, border-color .15s ease;
+  }
+  .add-btn:hover{background:#EEF2F7; border-color:var(--navy);}
+
+  /* ---------- predict section ---------- */
+  .predict-row{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    flex-wrap:wrap;
+  }
+  .predict-row .field{flex:1; min-width:140px;}
+  .primary-btn{
+    padding:11px 22px;
+    border-radius:7px;
+    border:none;
+    background:var(--navy);
+    color:#fff;
+    font-family:var(--sans);
+    font-weight:600;
+    font-size:14.5px;
+    cursor:pointer;
+    transition:background .15s ease, transform .05s ease;
+  }
+  .primary-btn:hover{background:#152944;}
+  .primary-btn:active{transform:translateY(1px);}
+
+  .error-msg{
+    font-size:13px;
+    color:var(--rust);
+    margin-top:12px;
+    display:none;
+  }
+  .error-msg.show{display:block;}
+
+  /* ---------- result card (signature element) ---------- */
+  .result-card{
+    background:var(--panel);
+    border:1px solid var(--navy);
+    border-radius:10px;
+    padding:0;
+    overflow:hidden;
+    margin-bottom:20px;
+    display:none;
+  }
+  .result-card.show{display:block;}
+  .result-strip{
+    background:var(--navy);
+    color:#fff;
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    padding:9px 22px;
+    display:flex;
+    justify-content:space-between;
+  }
+  .result-body{
+    padding:26px 22px 22px;
+    text-align:center;
+    border-bottom:1px dashed var(--line);
+  }
+  .result-label{
+    font-size:13px;
+    color:var(--steel);
+    margin-bottom:6px;
+  }
+  .result-value{
+    font-family:var(--mono);
+    font-size:clamp(40px,11vw,56px);
+    font-weight:700;
+    color:var(--navy);
+    letter-spacing:-0.02em;
+    line-height:1;
+  }
+  .result-value span{font-size:0.4em; font-weight:600; color:var(--steel); margin-left:4px;}
+  .result-delta{
+    margin-top:10px;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-family:var(--mono);
+    font-size:13px;
+    color:var(--vital);
+    background:var(--vital-soft);
+    padding:4px 10px;
+    border-radius:20px;
+  }
+  .result-foot{
+    display:flex;
+    justify-content:space-between;
+    padding:14px 22px;
+    font-family:var(--mono);
+    font-size:12.5px;
+    color:var(--steel);
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .result-foot b{color:var(--ink); font-weight:600;}
+
+  /* ---------- chart ---------- */
+  .chart-title{
+    font-size:13px;
+    color:var(--steel);
+    margin-bottom:12px;
+  }
+  canvas{width:100%; height:220px; display:block;}
+
+  footer{
+    text-align:center;
+    color:var(--steel);
+    font-size:12px;
+    margin-top:28px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Regression Model · y = a·ln(x) + b</div>
+    <h1>근성장 예측 리포트</h1>
+    <p>인바디 근육량 측정값 3개 이상을 입력하면, 로그 회귀 곡선을 적합시켜 지금처럼 운동을 지속했을 때의 미래 근육량을 예측해요.</p>
+  </header>
+
+  <!-- 01 데이터 입력 -->
+  <section class="panel">
+    <div class="panel-head">
+      <span class="panel-num">01</span>
+      <span class="panel-title">측정 데이터</span>
+    </div>
+    <p class="panel-help">운동 시작 후 경과 개월 수와 그 시점의 근육량(kg)을 입력하세요. 0개월은 로그함수에서 정의되지 않아 입력할 수 없어요.</p>
+
+    <div class="rows-head">
+      <span></span><span>경과 개월</span><span>근육량</span><span></span>
+    </div>
+    <div id="rows"></div>
+
+    <button class="add-btn" id="addRow" type="button">+ 측정값 추가</button>
+    <div class="error-msg" id="dataError"></div>
+  </section>
+
+  <!-- 02 예측 -->
+  <section class="panel">
+    <div class="panel-head">
+      <span class="panel-num">02</span>
+      <span class="panel-title">예측 시점</span>
+    </div>
+    <p class="panel-help">운동 시작 후 몇 개월 시점의 근육량을 예측할지 입력하세요.</p>
+    <div class="predict-row">
+      <div class="field">
+        <input type="number" id="targetMonth" placeholder="예: 12" min="0.1" step="0.1">
+        <span class="unit">개월</span>
+      </div>
+      <button class="primary-btn" id="predictBtn" type="button">예측하기</button>
+    </div>
+  </section>
+
+  <!-- 결과 -->
+  <div class="result-card" id="resultCard">
+    <div class="result-strip">
+      <span>판정 · Prediction</span>
+      <span id="fitQuality">R² —</span>
+    </div>
+    <div class="result-body">
+      <div class="result-label" id="resultLabel">N개월차 예측 근육량</div>
+      <div class="result-value" id="resultValue">—<span>kg</span></div>
+      <div class="result-delta" id="resultDelta"></div>
+    </div>
+    <div class="result-foot">
+      <span>적합 함수 &nbsp;<b id="fitEquation">y = a·ln(x) + b</b></span>
+    </div>
+  </div>
+
+  <section class="panel" id="chartPanel" style="display:none;">
+    <p class="chart-title">측정값(점)과 회귀 곡선(선) · 적합도 확인용</p>
+    <canvas id="chart" width="600" height="220"></canvas>
+  </section>
+
+  <footer>로그 회귀 기반 추정치이며, 실제 근성장은 식단·수면·훈련 강도에 따라 달라질 수 있어요.</footer>
+</div>
+
+<script>
+(function(){
+  const rowsEl = document.getElementById('rows');
+  const addRowBtn = document.getElementById('addRow');
+  const predictBtn = document.getElementById('predictBtn');
+  const dataError = document.getElementById('dataError');
+  const resultCard = document.getElementById('resultCard');
+  const resultValue = document.getElementById('resultValue');
+  const resultLabel = document.getElementById('resultLabel');
+  const resultDelta = document.getElementById('resultDelta');
+  const fitQuality = document.getElementById('fitQuality');
+  const fitEquation = document.getElementById('fitEquation');
+  const chartPanel = document.getElementById('chartPanel');
+  const canvas = document.getElementById('chart');
+
+  const DEFAULT_ROWS = 3;
+
+  function createRow(){
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.innerHTML = `
+      <span class="row-index"></span>
+      <div class="field">
+        <input type="number" class="x-input" placeholder="예: 3" min="0.1" step="0.1">
+        <span class="unit">개월</span>
+      </div>
+      <div class="field">
+        <input type="number" class="y-input" placeholder="예: 24.5" min="0" step="0.1">
+        <span class="unit">kg</span>
+      </div>
+      <button class="remove-btn" type="button" title="삭제">✕</button>
+    `;
+    return row;
+  }
+
+  function renumberRows(){
+    const rows = rowsEl.querySelectorAll('.row');
+    rows.forEach((row, i) => {
+      row.querySelector('.row-index').textContent = i + 1;
+      const btn = row.querySelector('.remove-btn');
+      btn.disabled = rows.length <= DEFAULT_ROWS;
+    });
+  }
+
+  function addRow(){
+    const row = createRow();
+    rowsEl.appendChild(row);
+    row.querySelector('.remove-btn').addEventListener('click', () => {
+      row.remove();
+      renumberRows();
+    });
+    renumberRows();
+  }
+
+  for(let i=0;i<DEFAULT_ROWS;i++) addRow();
+
+  addRowBtn.addEventListener('click', addRow);
+
+  function clearInvalid(){
+    rowsEl.querySelectorAll('input').forEach(inp => inp.classList.remove('invalid'));
+    document.getElementById('targetMonth').classList.remove('invalid');
+  }
+
+  function showError(msg){
+    dataError.textContent = msg;
+    dataError.classList.add('show');
+  }
+  function hideError(){
+    dataError.classList.remove('show');
+    dataError.textContent = '';
+  }
+
+  function collectPoints(){
+    const rows = rowsEl.querySelectorAll('.row');
+    const points = [];
+    let hasInvalid = false;
+
+    rows.forEach(row => {
+      const xInput = row.querySelector('.x-input');
+      const yInput = row.querySelector('.y-input');
+      const xRaw = xInput.value.trim();
+      const yRaw = yInput.value.trim();
+      if(xRaw === '' && yRaw === '') return; // skip fully empty row
+
+      const x = parseFloat(xRaw);
+      const y = parseFloat(yRaw);
+      const valid = xRaw !== '' && yRaw !== '' && !isNaN(x) && !isNaN(y) && x > 0 && y > 0;
+
+      if(!valid){
+        hasInvalid = true;
+        xInput.classList.add('invalid');
+        yInput.classList.add('invalid');
+      } else {
+        points.push({x, y});
+      }
+    });
+
+    return { points, hasInvalid };
+  }
+
+  function fitLog(points){
+    const n = points.length;
+    let sumT=0, sumY=0, sumTY=0, sumTT=0;
+    points.forEach(p => {
+      const t = Math.log(p.x);
+      sumT += t;
+      sumY += p.y;
+      sumTY += t * p.y;
+      sumTT += t * t;
+    });
+    const denom = n * sumTT - sumT * sumT;
+    if (denom === 0) return null;
+
+    const a = (n * sumTY - sumT * sumY) / denom;
+    const b = (sumY - a * sumT) / n;
+
+    const yMean = sumY / n;
+    let ssTot = 0, ssRes = 0;
+    points.forEach(p => {
+      const t = Math.log(p.x);
+      const yPred = a * t + b;
+      ssRes += (p.y - yPred) ** 2;
+      ssTot += (p.y - yMean) ** 2;
+    });
+    const r2 = ssTot === 0 ? 1 : 1 - ssRes / ssTot;
+    return { a, b, r2 };
+  }
+
+  function drawChart(points, fit, targetX, targetY){
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width, h = canvas.height;
+    ctx.clearRect(0,0,w,h);
+
+    const pad = { l:44, r:16, t:14, b:28 };
+    const allX = points.map(p=>p.x).concat([targetX]);
+    const allY = points.map(p=>p.y).concat([targetY]);
+    const minX = Math.min(...allX) * 0.6;
+    const maxX = Math.max(...allX) * 1.08;
+    const minY = Math.min(...allY, targetY) * 0.9;
+    const maxY = Math.max(...allY, targetY) * 1.08;
+
+    function mapX(x){ return pad.l + (x - minX) / (maxX - minX) * (w - pad.l - pad.r); }
+    function mapY(y){ return h - pad.b - (y - minY) / (maxY - minY) * (h - pad.t - pad.b); }
+
+    // axes
+    ctx.strokeStyle = '#DBE0E6';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(pad.l, pad.t); ctx.lineTo(pad.l, h - pad.b); ctx.lineTo(w - pad.r, h - pad.b);
+    ctx.stroke();
+
+    ctx.fillStyle = '#5B6472';
+    ctx.font = '10px IBM Plex Mono, monospace';
+    ctx.fillText(minY.toFixed(0), 4, h - pad.b);
+    ctx.fillText(maxY.toFixed(0), 4, pad.t + 8);
+    ctx.fillText(minX.toFixed(0)+'m', pad.l - 6, h - 8);
+    ctx.fillText(maxX.toFixed(0)+'m', w - pad.r - 24, h - 8);
+
+    // fitted curve
+    ctx.strokeStyle = '#1D3557';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    const steps = 60;
+    for(let i=0;i<=steps;i++){
+      const x = minX + (maxX - minX) * (i/steps);
+      if (x <= 0) continue;
+      const y = fit.a * Math.log(x) + fit.b;
+      const px = mapX(x), py = mapY(y);
+      if (i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+    }
+    ctx.stroke();
+
+    // measured points
+    ctx.fillStyle = '#1D3557';
+    points.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(mapX(p.x), mapY(p.y), 4, 0, Math.PI*2);
+      ctx.fill();
+    });
+
+    // predicted point
+    ctx.fillStyle = '#2F9E44';
+    ctx.beginPath();
+    ctx.arc(mapX(targetX), mapY(targetY), 5, 0, Math.PI*2);
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  }
+
+  predictBtn.addEventListener('click', () => {
+    hideError();
+    clearInvalid();
+    resultCard.classList.remove('show');
+    chartPanel.style.display = 'none';
+
+    const { points, hasInvalid } = collectPoints();
+    const targetInput = document.getElementById('targetMonth');
+    const targetX = parseFloat(targetInput.value);
+
+    if (hasInvalid){
+      showError('입력값을 확인해주세요. 개월 수와 근육량은 0보다 큰 숫자여야 해요.');
+      return;
+    }
+    if (points.length < 3){
+      showError('최소 3개 이상의 측정 데이터를 입력해주세요.');
+      return;
+    }
+    const uniqueX = new Set(points.map(p=>p.x));
+    if (uniqueX.size < 2){
+      showError('서로 다른 개월 수의 데이터가 최소 2개 이상 필요해요.');
+      return;
+    }
+    if (isNaN(targetX) || targetX <= 0){
+      targetInput.classList.add('invalid');
+      showError('예측할 개월 수를 0보다 큰 숫자로 입력해주세요.');
+      return;
+    }
+
+    const fit = fitLog(points);
+    if (!fit){
+      showError('입력한 데이터로는 곡선을 계산할 수 없어요. 값을 다시 확인해주세요.');
+      return;
+    }
+
+    const predictedY = fit.a * Math.log(targetX) + fit.b;
+
+    const lastMeasured = points.slice().sort((a,b)=>a.x-b.x).slice(-1)[0];
+    const delta = predictedY - lastMeasured.y;
+    const deltaSign = delta >= 0 ? '+' : '';
+
+    resultLabel.textContent = `${targetX}개월차 예측 근육량`;
+    resultValue.innerHTML = `${predictedY.toFixed(1)}<span>kg</span>`;
+    resultDelta.textContent = `최근 측정 대비 ${deltaSign}${delta.toFixed(1)}kg`;
+    resultDelta.style.color = delta >= 0 ? '#2F9E44' : '#C1440E';
+    resultDelta.style.background = delta >= 0 ? '#EAF7ED' : '#FBEAE3';
+    fitQuality.textContent = `R² ${fit.r2.toFixed(3)}`;
+    fitEquation.textContent = `y = ${fit.a.toFixed(3)}·ln(x) ${fit.b>=0?'+':'-'} ${Math.abs(fit.b).toFixed(2)}`;
+
+    resultCard.classList.add('show');
+    chartPanel.style.display = 'block';
+    drawChart(points, fit, targetX, predictedY);
+  });
+})();
+</script>
+</body>
+</html>
